@@ -1,4 +1,4 @@
-const CACHE = 'colormixer-v3';
+const CACHE = 'colormixer-v4';
 const ASSETS = [
   './',
   'index.html',
@@ -25,19 +25,16 @@ self.addEventListener('activate', e => {
 
 self.addEventListener('fetch', e => {
   e.respondWith(
-    caches.match(e.request).then(cached => {
-      // Cache-first: serve from cache, fall back to network
-      return cached || fetch(e.request).then(response => {
-        // Cache new successful requests
-        if (response.ok) {
-          const clone = response.clone();
-          caches.open(CACHE).then(c => c.put(e.request, clone));
-        }
-        return response;
-      });
+    fetch(e.request).then(response => {
+      // Network-first: always try fresh content, update cache
+      if (response.ok) {
+        const clone = response.clone();
+        caches.open(CACHE).then(c => c.put(e.request, clone));
+      }
+      return response;
     }).catch(() => {
-      // Offline fallback
-      return caches.match('./');
+      // Offline fallback: serve from cache
+      return caches.match(e.request).then(cached => cached || caches.match('./'));
     })
   );
 });
