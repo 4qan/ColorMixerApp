@@ -837,14 +837,40 @@ function nameColor(r, g, b) {
   return prefix + hueName;
 }
 
-// === COLOR MIXING (linear RGB, perceptually reasonable) ===
-function srgbToLinear(v) {
-  v /= 255;
-  return v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+// === COLOR MIXING (subtractive, RYB-based) ===
+// Uses trilinear interpolation through the RYB cube (Gosset & Chen)
+// so that mixing behaves like paint: Blue + Yellow = Green, etc.
+
+function cubicInt(t, A, B) { return A + t * (B - A); }
+
+function rgbToRyb(r, g, b) {
+  r /= 255; g /= 255; b /= 255;
+  const w = Math.min(r, g, b);
+  r -= w; g -= w; b -= w;
+  const mg = Math.max(r, g, b);
+  let y = Math.min(r, g);
+  r -= y; g -= y;
+  if (b > 0 && g > 0) { b /= 2; g /= 2; }
+  y += g; b += g;
+  const my = Math.max(r, y, b);
+  if (my > 0) { const n = mg / my; r *= n; y *= n; b *= n; }
+  r += w; y += w; b += w;
+  return [r * 255, y * 255, b * 255];
 }
-function linearToSrgb(v) {
-  v = Math.max(0, Math.min(1, v));
-  return (v <= 0.0031308 ? v * 12.92 : 1.055 * Math.pow(v, 1/2.4) - 0.055) * 255;
+
+function rybToRgb(r, y, b) {
+  r /= 255; y /= 255; b /= 255;
+  const w = Math.min(r, y, b);
+  r -= w; y -= w; b -= w;
+  const my = Math.max(r, y, b);
+  let g = Math.min(y, b);
+  y -= g; b -= g;
+  if (b > 0 && g > 0) { b *= 2; g *= 2; }
+  r += y; g += y;
+  const mg = Math.max(r, g, b);
+  if (mg > 0) { const n = my / mg; r *= n; g *= n; b *= n; }
+  r += w; g += w; b += w;
+  return [r * 255, g * 255, b * 255];
 }
 
 function mixColors() {
@@ -855,19 +881,18 @@ function mixColors() {
   }
   const total = selected.reduce((s,c) => s + c.weight, 0);
   if (total === 0) return null;
-  let lr=0, lg=0, lb=0;
+  let mr=0, my=0, mb=0;
   for (const c of selected) {
     const [r,g,b] = hexToRgb(c.hex);
+    const [rr, yy, bb] = rgbToRyb(r, g, b);
     const w = c.weight / total;
-    lr += srgbToLinear(r) * w;
-    lg += srgbToLinear(g) * w;
-    lb += srgbToLinear(b) * w;
+    mr += rr * w;
+    my += yy * w;
+    mb += bb * w;
   }
-  const r = Math.round(linearToSrgb(lr));
-  const g = Math.round(linearToSrgb(lg));
-  const b = Math.round(linearToSrgb(lb));
-  const hex = rgbToHex(r,g,b);
-  return { r, g, b, hex, name: nameColor(r,g,b) };
+  const [r, g, b] = rybToRgb(mr, my, mb).map(v => Math.round(Math.max(0, Math.min(255, v))));
+  const hex = rgbToHex(r, g, b);
+  return { r, g, b, hex, name: nameColor(r, g, b) };
 }
 
 // === ACTIONS ===
