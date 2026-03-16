@@ -1,7 +1,8 @@
-const CACHE = 'colormixer-v4';
+const CACHE = 'colormixer-v5';
 const ASSETS = [
   './',
   'index.html',
+  'mixbox.js',
   'manifest.json',
   'icon-192.png',
   'icon-512.png'
