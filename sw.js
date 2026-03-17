@@ -1,4 +1,4 @@
-const CACHE = 'colormixer-v12';
+const CACHE = 'colormixer-v13';
 const ASSETS = [
   './',
   'index.html',
