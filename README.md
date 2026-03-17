@@ -12,6 +12,7 @@ A simple, kid-friendly color mixing app that simulates how real paint behaves. T
 
 - **Physically accurate mixing** using [Mixbox](https://github.com/scrtwpns/mixbox) (Kubelka-Munk spectral pigment model). Blue + Yellow = Green, not gray.
 - **Intuitive color names** from the [XKCD color survey](https://blog.xkcd.com/2010/05/03/color-survey-results/) (891 names crowdsourced from 200k+ people). Every mix gets a distinct, everyday-English name like "Rust Orange" or "Dull Brown", not generic labels like "Vermilion." Palette colors use XKCD hex values so inputs and outputs are consistent within the same color space.
+- **Save colors**: save any mix result for later. Saved colors appear in the "More Colors" section and persist across sessions via localStorage (fully offline).
 - **Adjustable amounts**: sliders to control how much of each color goes in (1x to 10x).
 - **30 colors** to pick from, with an expandable palette.
 - **Installable PWA**: works offline, add to home screen on any device.
