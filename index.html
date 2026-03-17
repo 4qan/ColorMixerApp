@@ -728,12 +728,14 @@ function mixColors() {
 function addColor(color, evt) {
   selected.push({ ...color, weight: 1, id: ++idCounter });
   update();
+  if (document.getElementById('weightsSheet').classList.contains('open')) renderWeights();
   if (evt) spawnSparkles(evt, color.hex);
 }
 
 function removeById(id) {
   selected = selected.filter(c => c.id !== id);
   update();
+  if (document.getElementById('weightsSheet').classList.contains('open')) renderWeights();
 }
 
 function clearAll() {
@@ -817,9 +819,15 @@ function update() {
   // Weights FAB
   document.getElementById('weightsInlineBtn').classList.toggle('show', selected.length >= 2);
 
-  // Update weights sheet if open
+  // Update weights sheet values without re-rendering (preserves drag state)
   if (document.getElementById('weightsSheet').classList.contains('open')) {
-    renderWeights();
+    document.querySelectorAll('#weightsContent .w-row').forEach(row => {
+      const slider = row.querySelector('.w-slider');
+      if (slider) {
+        const valEl = row.querySelector('.w-val');
+        if (valEl) valEl.textContent = slider.value + 'x';
+      }
+    });
   }
 }
 
