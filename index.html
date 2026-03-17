@@ -422,6 +422,13 @@ html, body {
 }
 .weights-backdrop {
   display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.3);
+  z-index: 49;
+}
+.weights-backdrop.open {
+  display: block;
 }
 .weights-inner {
   background: white;
@@ -439,12 +446,37 @@ html, body {
   background: #d0d0d0;
   border-radius: 2px;
   margin: 0 auto 12px;
+  cursor: pointer;
+  padding: 8px 0;
+  background-clip: content-box;
+}
+.weights-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  margin-bottom: 14px;
 }
 .weights-title {
   font-size: 16px;
   font-weight: 800;
-  margin-bottom: 14px;
   text-align: center;
+}
+.weights-close {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #f0f0f0;
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  font-size: 18px;
+  line-height: 28px;
+  text-align: center;
+  color: #666;
+  cursor: pointer;
 }
 .w-row {
   display: flex;
@@ -627,8 +659,11 @@ html, body {
 <div class="weights-backdrop" id="weightsBackdrop" onclick="closeWeights()"></div>
 <div class="weights-sheet" id="weightsSheet">
   <div class="weights-inner">
-    <div class="weights-handle"></div>
-    <div class="weights-title">Adjust Amounts</div>
+    <div class="weights-handle" onclick="closeWeights()"></div>
+    <div class="weights-header">
+      <div class="weights-title">Adjust Amounts</div>
+      <button class="weights-close" onclick="closeWeights()" aria-label="Close">&times;</button>
+    </div>
     <div id="weightsContent"></div>
   </div>
 </div>
@@ -850,9 +885,45 @@ function openWeights() {
   document.getElementById('weightsBackdrop').classList.add('open');
 }
 function closeWeights() {
-  document.getElementById('weightsSheet').classList.remove('open');
+  const sheet = document.getElementById('weightsSheet');
+  sheet.style.transform = '';
+  sheet.classList.remove('open');
   document.getElementById('weightsBackdrop').classList.remove('open');
 }
+
+// Swipe-down-to-close for weights sheet
+(function() {
+  const sheet = document.getElementById('weightsSheet');
+  let startY = 0, currentY = 0, dragging = false;
+  sheet.addEventListener('touchstart', function(e) {
+    const inner = sheet.querySelector('.weights-inner');
+    if (inner.scrollTop > 0) return;
+    startY = e.touches[0].clientY;
+    currentY = startY;
+    dragging = true;
+    sheet.style.transition = 'none';
+  });
+  sheet.addEventListener('touchmove', function(e) {
+    if (!dragging) return;
+    currentY = e.touches[0].clientY;
+    const dy = Math.max(0, currentY - startY);
+    if (dy > 0) {
+      sheet.style.transform = `translateY(${dy}px)`;
+      e.preventDefault();
+    }
+  }, { passive: false });
+  sheet.addEventListener('touchend', function() {
+    if (!dragging) return;
+    dragging = false;
+    sheet.style.transition = '';
+    const dy = currentY - startY;
+    if (dy > 80) {
+      closeWeights();
+    } else {
+      sheet.style.transform = 'translateY(0)';
+    }
+  });
+})();
 
 // === PALETTE BUILD ===
 function buildGrid(colors, containerId) {
