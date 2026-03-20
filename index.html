@@ -795,16 +795,6 @@ function setWeight(id, val) {
   if (c) { c.weight = Number(val); update(); }
 }
 
-let speakVoice = null;
-function loadVoice() {
-  const voices = speechSynthesis.getVoices();
-  speakVoice = voices.find(v => v.lang === 'en-IN') ||
-               voices.find(v => v.lang.startsWith('en-IN')) ||
-               voices.find(v => v.lang.startsWith('en')) || null;
-}
-speechSynthesis.onvoiceschanged = loadVoice;
-loadVoice();
-
 function speakColor() {
   const mix = mixColors();
   if (!mix) return;
@@ -817,7 +807,6 @@ function speakColor() {
     setTimeout(() => {
       const utterance = new SpeechSynthesisUtterance(word);
       utterance.rate = 0.7;
-      if (speakVoice) utterance.voice = speakVoice;
       if (i === words.length - 1) {
         utterance.onend = () => btn.classList.remove('speaking');
         utterance.onerror = () => btn.classList.remove('speaking');
