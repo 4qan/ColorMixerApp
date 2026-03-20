@@ -799,13 +799,21 @@ function speakColor() {
   const mix = mixColors();
   if (!mix) return;
   speechSynthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance(mix.name);
-  utterance.rate = 0.9;
+  const words = mix.name.split(/\s+/);
   const btn = document.getElementById('speakBtn');
   btn.classList.add('speaking');
-  utterance.onend = () => btn.classList.remove('speaking');
-  utterance.onerror = () => btn.classList.remove('speaking');
-  speechSynthesis.speak(utterance);
+  const pause = 400;
+  words.forEach((word, i) => {
+    setTimeout(() => {
+      const utterance = new SpeechSynthesisUtterance(word);
+      utterance.rate = 0.7;
+      if (i === words.length - 1) {
+        utterance.onend = () => btn.classList.remove('speaking');
+        utterance.onerror = () => btn.classList.remove('speaking');
+      }
+      speechSynthesis.speak(utterance);
+    }, i * pause);
+  });
 }
 
 // === RENDER ===
