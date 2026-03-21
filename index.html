@@ -908,7 +908,7 @@ function update() {
 
   // Save & Clear buttons
   const hasMix = selected.length >= 2 && mix;
-  document.getElementById('speakBtn').classList.toggle('show', hasMix);
+  document.getElementById('speakBtn').classList.toggle('show', selected.length >= 1);
   document.getElementById('saveBtn').classList.toggle('show', hasMix);
   document.getElementById('clearBtn').classList.toggle('show', selected.length > 0);
 
