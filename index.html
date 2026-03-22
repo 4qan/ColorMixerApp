@@ -103,7 +103,7 @@ html, body {
   align-items: center;
   flex-shrink: 0;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 }
 
 /* Result circle */
@@ -147,9 +147,7 @@ html, body {
   min-height: 42px;
 }
 .result-name {
-  font-size: 20px;
-  font-weight: 800;
-  line-height: 1.2;
+  display: none;
 }
 .result-hex {
   font-size: 13px;
@@ -233,7 +231,7 @@ html, body {
   align-items: center;
   justify-content: center;
 }
-/* Speak button (primary) — bottom-left edge of circle */
+/* Speak button (primary) — bottom-right edge of circle */
 .speak-btn {
   width: 48px;
   height: 48px;
@@ -249,8 +247,8 @@ html, body {
   transition: opacity 0.2s, transform 0.15s;
   box-shadow: 0 3px 12px rgba(245, 158, 11, 0.35);
   position: absolute;
-  bottom: -6px;
-  right: -6px;
+  bottom: -12px;
+  right: -18px;
   z-index: 3;
 }
 .speak-btn:not(.show) { visibility: hidden; display: flex; }
@@ -272,8 +270,8 @@ html, body {
   padding: 0;
   transition: opacity 0.2s, transform 0.15s;
   position: absolute;
-  top: -4px;
-  right: -4px;
+  top: -10px;
+  right: -16px;
   z-index: 3;
 }
 .save-btn:not(.show) { visibility: hidden; display: flex; }
