@@ -227,20 +227,13 @@ html, body {
   flex-shrink: 0;
 }
 
-/* Result row: circle — stacked CTAs on right */
+/* Result row: circle with satellite CTAs */
 .result-row {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 16px;
 }
-.cta-stack {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-}
-/* Speak button (primary, kid-facing) */
+/* Speak button (primary) — bottom-left edge of circle */
 .speak-btn {
   width: 48px;
   height: 48px;
@@ -255,12 +248,16 @@ html, body {
   padding: 0;
   transition: opacity 0.2s, transform 0.15s;
   box-shadow: 0 3px 12px rgba(245, 158, 11, 0.35);
+  position: absolute;
+  bottom: -6px;
+  left: -6px;
+  z-index: 3;
 }
 .speak-btn:not(.show) { visibility: hidden; display: flex; }
 .speak-btn.show { display: flex; }
 .speak-btn:active { opacity: 0.7; transform: scale(0.9); }
 .speak-btn.speaking { background: #ea580c; box-shadow: 0 3px 12px rgba(234, 88, 12, 0.4); }
-/* Save button (secondary) */
+/* Save button (secondary) — top-right edge of circle */
 .save-btn {
   width: 40px;
   height: 40px;
@@ -274,6 +271,10 @@ html, body {
   justify-content: center;
   padding: 0;
   transition: opacity 0.2s, transform 0.15s;
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  z-index: 3;
 }
 .save-btn:not(.show) { visibility: hidden; display: flex; }
 .save-btn.show { display: flex; }
@@ -670,8 +671,6 @@ html, body {
         <span class="placeholder">?</span>
         <span class="circle-label" id="circleLabel"></span>
         <div class="star-burst" id="starBurst"></div>
-      </div>
-      <div class="cta-stack">
         <button class="speak-btn" id="speakBtn" onclick="speakColor()" title="Hear Color Name">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
         </button>
