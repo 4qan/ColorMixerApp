@@ -118,53 +118,32 @@
       box-shadow: 0 6px 18px rgba(108,92,231,0.45);
     }
 
+    /* Minimal center indicator — fixed in viewfinder center, fills with the
+       live sampled color. No ring, no crosshairs, no corners — point-and-shoot
+       model, the camera moves, this stays put. */
     .cam-reticle {
       position: absolute; pointer-events: none;
-      width: 108px; height: 108px;
-      transition: left 80ms linear, top 80ms linear;
-    }
-    .cam-reticle.dragging { transition: none; }
-    .cam-reticle .ring {
-      position: absolute; inset: 0; border-radius: 50%;
-      border: 2px solid rgba(255,255,255,0.85);
+      left: 50%; top: 50%; transform: translate(-50%, -50%);
+      width: 36px; height: 36px; border-radius: 50%;
+      border: 3px solid rgba(255,255,255,0.95);
       box-shadow:
         0 0 0 1px rgba(0,0,0,0.35),
-        inset 0 0 0 1px rgba(0,0,0,0.25),
-        0 6px 18px rgba(0,0,0,0.45);
-    }
-    .cam-reticle .disc {
-      position: absolute; inset: 26%; border-radius: 50%;
-      border: 3px solid rgba(255,255,255,0.95);
-      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.2);
+        0 4px 14px rgba(0,0,0,0.4);
       transition: background 120ms ease;
     }
-    .cam-reticle .cross-v {
-      position: absolute; left: 50%; top: 2px; bottom: 2px; width: 1px;
-      background: rgba(255,255,255,0.6); transform: translateX(-0.5px);
-    }
-    .cam-reticle .cross-h {
-      position: absolute; top: 50%; left: 2px; right: 2px; height: 1px;
-      background: rgba(255,255,255,0.6); transform: translateY(-0.5px);
-    }
-    .cam-reticle .corner {
-      position: absolute; width: 12px; height: 12px;
-    }
-    .cam-reticle .corner.tl { top: -6px; left: -6px; border-top: 2px solid #fff; border-left: 2px solid #fff; }
-    .cam-reticle .corner.tr { top: -6px; right: -6px; border-top: 2px solid #fff; border-right: 2px solid #fff; }
-    .cam-reticle .corner.bl { bottom: -6px; left: -6px; border-bottom: 2px solid #fff; border-left: 2px solid #fff; }
-    .cam-reticle .corner.br { bottom: -6px; right: -6px; border-bottom: 2px solid #fff; border-right: 2px solid #fff; }
 
+    /* Color-name pill — fixed below the center reticle, centered horizontally. */
     .cam-chip {
       position: absolute; pointer-events: none;
-      width: 168px; padding: 10px 12px; border-radius: 14px;
+      left: 50%; top: 50%;
+      transform: translate(-50%, calc(-50% + 38px));
+      min-width: 100px; max-width: 80%;
+      padding: 8px 14px; border-radius: 999px;
       box-shadow: 0 6px 22px rgba(0,0,0,0.4), inset 0 0 0 1px rgba(255,255,255,0.25);
-      transition: background 150ms ease, color 150ms ease, left 80ms linear, top 80ms linear;
-      font-size: 15px; font-weight: 900; line-height: 1.15;
+      transition: background 150ms ease, color 150ms ease;
+      font-size: 14px; font-weight: 900; line-height: 1.15;
       text-transform: capitalize; text-align: center;
-    }
-    .cam-chip .arrow {
-      position: absolute; width: 12px; height: 12px;
-      transform: rotate(45deg); background: inherit;
+      white-space: nowrap;
     }
 
     .cam-hint {
@@ -342,11 +321,17 @@
   let shutterFill = null;
   let hintEl = null;
   let permissionEl = null;
-  let pos = { x: 0, y: 0 };
   let currentSample = { r: 128, g: 128, b: 128, hex: '#808080' };
-  let rafPending = false;
-  let lastSampleAt = 0;
+  let sampleInterval = null;
   let hintDismissed = false;
+
+  function startSamplingLoop() {
+    if (sampleInterval) return;
+    sampleInterval = setInterval(sampleNow, 100); // ~10Hz
+  }
+  function stopSamplingLoop() {
+    if (sampleInterval) { clearInterval(sampleInterval); sampleInterval = null; }
+  }
 
   function buildCameraScreen() {
     if (camRoot) return;
@@ -363,18 +348,9 @@
       <div class="cam-viewfinder">
         <video class="cam-video" autoplay playsinline muted></video>
         <canvas class="cam-sample-canvas"></canvas>
-        <div class="cam-reticle">
-          <div class="ring"></div>
-          <div class="disc"></div>
-          <div class="cross-v"></div>
-          <div class="cross-h"></div>
-          <div class="corner tl"></div>
-          <div class="corner tr"></div>
-          <div class="corner bl"></div>
-          <div class="corner br"></div>
-        </div>
-        <div class="cam-chip"><span class="cam-chip-text">…</span><div class="arrow"></div></div>
-        <div class="cam-hint"><span style="font-size:14px">☝️</span> Move the circle onto a color, then tap the big button</div>
+        <div class="cam-reticle"></div>
+        <div class="cam-chip"><span class="cam-chip-text">…</span></div>
+        <div class="cam-hint"><span style="font-size:14px">☝️</span> Point the camera at any color, then tap the big button</div>
       </div>
       <div class="cam-shutter-bar">
         <button class="cam-shutter" data-action="capture" aria-label="Capture color">
@@ -396,33 +372,19 @@
     camRoot.querySelector('[data-action="close"]').addEventListener('click', closeCamera);
     camRoot.querySelector('[data-action="capture"]').addEventListener('click', onCapture);
 
-    // Reticle drag (uses pointer events on the viewfinder, anywhere-tap moves reticle)
-    let dragging = false;
-    const onPointer = (e) => {
-      const rect = viewfinder.getBoundingClientRect();
-      const cx = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
-      const cy = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
-      pos.x = Math.max(0, Math.min(rect.width, cx));
-      pos.y = Math.max(0, Math.min(rect.height, cy));
-      reticleEl.classList.add('dragging');
-      scheduleSample();
-    };
-    viewfinder.addEventListener('pointerdown', (e) => {
-      dragging = true;
-      viewfinder.setPointerCapture(e.pointerId);
-      onPointer(e);
-      dismissHint();
-    });
-    viewfinder.addEventListener('pointermove', (e) => {
-      if (!dragging) return;
-      onPointer(e);
-    });
-    const endDrag = () => {
-      dragging = false;
-      reticleEl.classList.remove('dragging');
-    };
-    viewfinder.addEventListener('pointerup', endDrag);
-    viewfinder.addEventListener('pointercancel', endDrag);
+    // Auto-dismiss the hint after 4s — point-and-shoot is intuitive, the hint
+    // is just for first-time orientation. Persist dismissal so it never returns.
+    if (localStorage.getItem('cam-hint-dismissed') === '1') {
+      hintEl.classList.add('hidden');
+      hintDismissed = true;
+    } else {
+      setTimeout(() => {
+        if (!hintDismissed) {
+          dismissHint();
+          localStorage.setItem('cam-hint-dismissed', '1');
+        }
+      }, 4000);
+    }
   }
 
   function dismissHint() {
@@ -431,40 +393,8 @@
     hintEl.classList.add('hidden');
   }
 
-  function scheduleSample() {
-    positionReticle();
-    if (rafPending) return;
-    rafPending = true;
-    requestAnimationFrame(() => {
-      rafPending = false;
-      const now = performance.now();
-      if (now - lastSampleAt < 90) return; // ~10Hz cap
-      lastSampleAt = now;
-      sampleNow();
-    });
-  }
-
-  function positionReticle() {
-    reticleEl.style.left = (pos.x - 54) + 'px';
-    reticleEl.style.top = (pos.y - 54) + 'px';
-    positionChip();
-  }
-
-  function positionChip() {
-    const above = pos.y > 140;
-    const top = above ? (pos.y - 118) : (pos.y + 82);
-    const wrapW = viewfinder.clientWidth;
-    const left = Math.max(12, Math.min(wrapW - 180, pos.x - 84));
-    chipEl.style.left = left + 'px';
-    chipEl.style.top = top + 'px';
-    const arrow = chipEl.querySelector('.arrow');
-    arrow.style.left = (pos.x - left - 6) + 'px';
-    if (above) {
-      arrow.style.bottom = '-6px'; arrow.style.top = '';
-    } else {
-      arrow.style.top = '-6px'; arrow.style.bottom = '';
-    }
-  }
+  // Reticle is fixed in CSS (left/top: 50%, transform translate). Chip is too.
+  // No JS positioning needed.
 
   function sampleNow() {
     if (!video.videoWidth) return;
@@ -487,8 +417,9 @@
       offsetX = 0;
       offsetY = (video.videoHeight - drawH) / 2;
     }
-    const sx = offsetX + (pos.x / vw) * drawW;
-    const sy = offsetY + (pos.y / vh) * drawH;
+    // Always sample the dead-center pixel — point-and-shoot model.
+    const sx = offsetX + drawW / 2;
+    const sy = offsetY + drawH / 2;
     const R = 6;
 
     sampleCanvas.width = R * 2;
@@ -507,8 +438,7 @@
   }
 
   function paintLiveUI(s) {
-    const disc = reticleEl.querySelector('.disc');
-    disc.style.background = s.hex;
+    reticleEl.style.background = s.hex;
     shutterFill.style.background = s.hex;
 
     const name = (window.nameColor ? window.nameColor(s.r, s.g, s.b) : '');
@@ -550,13 +480,10 @@
       });
       video.srcObject = stream;
       await video.play().catch(() => {});
-      // Center reticle once we know the size
-      requestAnimationFrame(() => {
-        const rect = viewfinder.getBoundingClientRect();
-        pos = { x: rect.width / 2, y: rect.height / 2 };
-        positionReticle();
-        sampleNow();
-      });
+      // Continuous center sampling at ~10Hz so the indicator + tooltip + shutter
+      // fill update live as the user moves the camera.
+      sampleNow();
+      startSamplingLoop();
     } catch (err) {
       const denied = err && (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError');
       const msg = denied
@@ -567,6 +494,7 @@
   }
 
   function stopCameraStream() {
+    stopSamplingLoop();
     if (stream) {
       stream.getTracks().forEach(t => t.stop());
       stream = null;
