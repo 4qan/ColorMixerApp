@@ -814,5 +814,9 @@
     if (reopenCamera) openCamera();
   }
 
+  // Inject styles immediately so the .camera-cta on the home screen is styled
+  // on first paint, not only after the first tap opens the camera.
+  injectStyles();
+
   window.openCameraSampler = openCamera;
 })();
