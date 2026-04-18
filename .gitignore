@@ -1,0 +1,11 @@
+# Local HTTPS dev certs — never commit private keys
+*.pem
+
+# Local dev server (uses self-signed certs above, hardcoded LAN IP)
+server.py
+
+# Claude Code project state
+.claude/
+
+# OS
+.DS_Store
