@@ -167,11 +167,19 @@ html, body {
   min-height: 44px;
   width: 100%;
 }
-.mix-equation .empty-msg {
+.mix-empty-msg {
+  margin-top: 10px;
   font-size: 14px;
   color: var(--text-soft);
   font-weight: 700;
+  text-align: center;
 }
+/* Collapse the active-state sections when nothing is selected — removes the
+   empty-state gap. The card grows once on first color, then stays stable. */
+.mix-card:not(.is-empty) .mix-empty-msg { display: none; }
+.mix-card.is-empty .result-info,
+.mix-card.is-empty .mix-equation,
+.mix-card.is-empty .mix-actions { display: none; }
 .eq-color {
   width: 38px;
   height: 38px;
@@ -679,13 +687,12 @@ html, body {
         </button>
       </div>
     </div>
+    <div class="mix-empty-msg">Pick colors below, or take a picture of one</div>
     <div class="result-info">
       <div class="result-name" id="resultName"></div>
       <div class="result-hex" id="resultHex"></div>
     </div>
-    <div class="mix-equation" id="mixEquation">
-      <span class="empty-msg">Tap colors to start mixing!</span>
-    </div>
+    <div class="mix-equation" id="mixEquation"></div>
     <div class="mix-actions">
       <button class="weights-inline-btn" id="weightsInlineBtn" onclick="openWeights()" title="Adjust Amounts">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="4" y1="8" x2="20" y2="8"/><line x1="4" y1="16" x2="20" y2="16"/><circle cx="9" cy="8" r="2.5" fill="currentColor"/><circle cx="15" cy="16" r="2.5" fill="currentColor"/></svg>
@@ -901,10 +908,13 @@ function update() {
     hexEl.textContent = '';
   }
 
+  // Toggle empty state on the mix card (collapses unused sections, removes the gap)
+  document.querySelector('.mix-card').classList.toggle('is-empty', selected.length === 0);
+
   // Equation row
   const eq = document.getElementById('mixEquation');
   if (!selected.length) {
-    eq.innerHTML = '<span class="empty-msg">Tap colors to start mixing!</span>';
+    eq.innerHTML = '';
   } else {
     let html = '';
     selected.forEach((c, i) => {
