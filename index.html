@@ -696,6 +696,15 @@ html, body {
     </div>
   </div>
 
+  <!-- Camera CTA -->
+  <button class="camera-cta" onclick="openCameraSampler()">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/>
+      <circle cx="12" cy="13" r="3.5"/>
+    </svg>
+    Find a color with the camera
+  </button>
+
   <!-- Palette (scrollable) -->
   <div class="palette-area">
     <div class="section-label">Colors</div>
@@ -1158,10 +1167,16 @@ buildGrid(EXTRA, 'extraPalette');
 renderSaved();
 update();
 
+// Expose for camera.js to reuse the existing saved-colors store and color naming
+window.nameColor = nameColor;
+window.getSaved = getSaved;
+window.setSaved = setSaved;
+
 // PWA
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').catch(() => {});
 }
 </script>
+<script src="camera.js"></script>
 </body>
 </html>

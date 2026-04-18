@@ -12,6 +12,7 @@ A simple, kid-friendly color mixing app that simulates how real paint behaves. T
 
 - **Physically accurate mixing** using [Mixbox](https://github.com/scrtwpns/mixbox) (Kubelka-Munk spectral pigment model). Blue + Yellow = Green, not gray.
 - **Intuitive color names** from the [XKCD color survey](https://blog.xkcd.com/2010/05/03/color-survey-results/) (891 names crowdsourced from 200k+ people). Every mix gets a distinct, everyday-English name like "Rust Orange" or "Dull Brown", not generic labels like "Vermilion." Palette colors use XKCD hex values so inputs and outputs are consistent within the same color space.
+- **Find a color with the camera**: point the phone at anything (a leaf, a shirt, an apple), drag the reticle onto the color, and tap the shutter. The app names the color and shows a paint recipe like "4 parts red + 1 part yellow + 1 part white" using the same Mixbox engine in reverse (brute-force search across the 5 base paints, ≤3 non-zero, integer parts summing to 6).
 - **Save colors**: save any mix result for later. Saved colors appear in the "More Colors" section and persist across sessions via localStorage (fully offline).
 - **Speak aloud**: tap the speaker button to hear the color name spoken aloud. Uses the browser's built-in speech synthesis, no extra dependencies.
 - **Adjustable amounts**: sliders to control how much of each color goes in (1x to 10x).
