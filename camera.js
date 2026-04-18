@@ -316,17 +316,17 @@
     }
     .cam-btn-save.done { background: #10b981; box-shadow: 0 6px 16px rgba(16,185,129,0.35); }
 
-    /* --- CTA on home --- */
+    /* --- CTA inside the mix card (matches handoff: smaller pill, hugs content) --- */
     .camera-cta {
-      display: flex; align-items: center; justify-content: center; gap: 10px;
-      margin: 4px 16px 12px; padding: 13px 20px; width: calc(100% - 32px);
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      width: fit-content; margin: 12px auto 4px; padding: 10px 18px;
       border-radius: 999px; border: none; cursor: pointer;
       background: linear-gradient(135deg, #6c5ce7, #ec4899); color: #fff;
-      font-family: inherit; font-weight: 900; font-size: 14px;
-      box-shadow: 0 6px 18px rgba(108,92,231,0.35);
+      font-family: inherit; font-weight: 900; font-size: 13px;
+      box-shadow: 0 4px 14px rgba(108,92,231,0.32);
       -webkit-tap-highlight-color: transparent;
     }
-    .camera-cta:active { transform: scale(0.98); }
+    .camera-cta:active { transform: scale(0.97); }
   `;
 
   let stylesInjected = false;
